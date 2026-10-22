@@ -15,6 +15,7 @@ from .measurements import parse_ebur128_measurement, parse_loudnorm_measurement
 from .models import (
     AudioMeasurement,
     CommandRunner,
+    MeasurementStatus,
     ProbeInfo,
     QAResult,
     TrackResult,
@@ -390,7 +391,9 @@ def render_track(
 
         cpu_values = [result.cpu_seconds for result in results]
         all_measured = all(result.measurement_status == "measured" for result in results)
-        measurement_status = "measured" if all_measured and all(value is not None for value in cpu_values) else "unavailable"
+        measurement_status: MeasurementStatus = (
+            "measured" if all_measured and all(value is not None for value in cpu_values) else "unavailable"
+        )
         cpu_seconds = sum(value for value in cpu_values if value is not None) if measurement_status == "measured" else None
         output_hash = _hash_file(staged_output, deadline=track_deadline)
         relative_source = Path(track.request.source).as_posix()

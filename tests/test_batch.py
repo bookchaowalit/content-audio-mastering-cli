@@ -2,6 +2,7 @@ import json
 import os
 import time
 from pathlib import Path
+from typing import Any
 
 import pytest
 from jsonschema import Draft202012Validator
@@ -87,7 +88,8 @@ def test_process_batch_publishes_manifest_and_keeps_per_track_failure_local(tmp_
     assert result.tracks[1].error.code == "SOURCE_NOT_FOUND"
     assert list(Draft202012Validator(schema).iter_errors(payload)) == []
     assert verify_manifest(manifest_path).passed is True
-    assert "output" not in serialize_result(result)["tracks"][0]["output_relative_path"]
+    serialized_tracks: Any = serialize_result(result)["tracks"]
+    assert "output" not in serialized_tracks[0]["output_relative_path"]
 
 
 @requires_pinned_toolchain

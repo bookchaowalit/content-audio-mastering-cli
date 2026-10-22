@@ -16,10 +16,14 @@ concurrency:
 
 jobs:
   cli:
-    uses: bookchaowalit/platform-ci-workflows/.github/workflows/ci-python.yml@c37ef9d113eefb3ed45429717cb7ca201192c3fc # v1.0.1
+    uses: bookchaowalit/platform-ci-workflows/.github/workflows/ci-python.yml@87dc5e1c7e0416886a6371d5a101bb2ccba38edd # v1.1.1
     with:
       python-version: "3.12" # requires-python >= 3.12; the previous CI ran 3.12
-      install-command: uv pip install -e ".[test]"
+      # install-command auto: uv.lock -> uv sync --frozen --all-extras (mypy, ruff, pytest-cov from the test extra).
+      # typecheck-command auto: mypy runs because pyproject has [tool.mypy].
+      # Ratchet: measured 58.1% on 2026-10-22 without the pinned FFmpeg build (ADR-0004: threshold = measured,
+      # rounded down); the FFmpeg-dependent tests skip on CI, so raise it as offline tests grow.
+      coverage-threshold: "58"
       # Same gates as the previous CI: CLI smoke test, the built wheel reads the packaged
       # toolchain lock, then pytest. Tests that render or replay real audio assert against the
       # exact FFmpeg/FFprobe build pinned in toolchain.lock.json (a Windows build), so they skip
@@ -31,7 +35,7 @@ jobs:
         uv venv "$RUNNER_TEMP/wheel-env"
         uv pip install --python "$RUNNER_TEMP/wheel-env/bin/python" --no-deps "$RUNNER_TEMP"/dist/*.whl
         (cd "$RUNNER_TEMP" && "$RUNNER_TEMP/wheel-env/bin/python" -c "from book_audio_production.toolchain_lock import pinned_versions; print(pinned_versions()[0])")
-        python -m pytest -q
+        python -m pytest -q --cov
 
   security:
-    uses: bookchaowalit/platform-ci-workflows/.github/workflows/security.yml@c37ef9d113eefb3ed45429717cb7ca201192c3fc # v1.0.1
+    uses: bookchaowalit/platform-ci-workflows/.github/workflows/security.yml@87dc5e1c7e0416886a6371d5a101bb2ccba38edd # v1.1.1

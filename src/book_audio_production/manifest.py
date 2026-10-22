@@ -6,10 +6,10 @@ import json
 import math
 import re
 from pathlib import Path
-from typing import Any, NoReturn
+from typing import Any, NoReturn, cast
 
 from .errors import AudioError
-from .models import AudioBatch, LoudnessTargets, TrackRequest, TrimRange
+from .models import AudioBatch, LoudnessTargets, OutputFormat, TrackRequest, TrimRange
 
 _IDENTIFIER = re.compile(r"[A-Za-z0-9_-]{1,64}\Z", re.ASCII)
 _FORMATS = {"flac", "wav_pcm24"}
@@ -148,7 +148,7 @@ def parse_manifest(payload: bytes) -> AudioBatch:
         output_format = track["output_format"]
         if not isinstance(output_format, str) or output_format not in _FORMATS:
             raise AudioError("INVALID_OUTPUT_FORMAT", "Output format must be flac or wav_pcm24")
-        tracks.append(TrackRequest(track_id, source, trim, targets, output_format))
+        tracks.append(TrackRequest(track_id, source, trim, targets, cast(OutputFormat, output_format)))
 
     return AudioBatch(batch_id=batch_id, tracks=tuple(tracks))
 

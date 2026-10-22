@@ -93,7 +93,7 @@ def validate_track(
         raise AudioError("INVALID_OUTPUT_FORMAT", "Output format must be flac or wav_pcm24")
 
     targets = track.targets
-    numeric_targets = (targets.integrated_lufs, targets.true_peak_dbtp)
+    numeric_targets: tuple[float, ...] = (targets.integrated_lufs, targets.true_peak_dbtp)
     if targets.lra_lu is not None:
         numeric_targets += (targets.lra_lu,)
     if any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) for value in numeric_targets):

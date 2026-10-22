@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict
 from pathlib import PurePosixPath, PureWindowsPath
+from typing import Any
 from urllib.parse import urlsplit
 
 from .errors import AudioError
@@ -55,8 +56,11 @@ def serialize_result(result: AudioBatchResult) -> dict[str, object]:
     return decoded
 
 
-def deserialize_result(payload: dict[str, object], *, replay: bool = False) -> AudioBatchResult:
-    """Rebuild the typed public result from a previously verified manifest."""
+def deserialize_result(payload: dict[str, Any], *, replay: bool = False) -> AudioBatchResult:
+    """Rebuild the typed public result from a previously verified manifest.
+
+    ``payload`` is decoded JSON; every field access below is guarded by the except clause.
+    """
     try:
         if payload.get("schema_version") != "audio-batch-result.v1":
             raise ValueError

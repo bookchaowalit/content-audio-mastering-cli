@@ -9,6 +9,7 @@ import os
 import tempfile
 import time
 from pathlib import Path, PurePosixPath, PureWindowsPath
+from typing import TypeGuard
 from urllib.parse import urlsplit
 
 from .errors import AudioError
@@ -67,7 +68,7 @@ def write_manifest_atomic(manifest: Path, payload: dict[str, object]) -> None:
             temporary.unlink(missing_ok=True)
 
 
-def _safe_artifact_reference(value: object) -> bool:
+def _safe_artifact_reference(value: object) -> TypeGuard[str]:
     if not isinstance(value, str) or not value or "\\" in value:
         return False
     parsed = urlsplit(value)
@@ -141,7 +142,7 @@ def verify_manifest(manifest: Path, *, deadline: float | None = None) -> Verific
             or expected_size <= 0
         ):
             return VerificationResult(False, "INVALID_MANIFEST", checked, total_bytes)
-        artifact = manifest.parent / PurePosixPath(reference)
+        artifact = manifest.parent.joinpath(*PurePosixPath(reference).parts)
         try:
             resolved = artifact.resolve(strict=True)
             resolved.relative_to(root)

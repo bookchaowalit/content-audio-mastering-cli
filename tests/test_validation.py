@@ -65,7 +65,7 @@ def test_rejects_playlist_container_before_probe(tmp_path: Path, monkeypatch) ->
     )
 
     with pytest.raises(AudioError) as error:
-        validate_track(request("playlist.m3u8"), root, AudioLimits(), lambda *_args: None)
+        validate_track(request("playlist.m3u8"), root, AudioLimits(), lambda *_args: None)  # type: ignore[arg-type]  # runner must never be reached
 
     assert error.value.code == "UNSUPPORTED_FORMAT"
 
@@ -101,7 +101,7 @@ def test_rejects_invalid_trim_before_probe(tmp_path: Path, trim: TrimRange) -> N
         LoudnessTargets(-16, 0.1, None),
         LoudnessTargets(-16, -1, 51),
         LoudnessTargets(True, -1, None),
-        LoudnessTargets("-16", -1, None),
+        LoudnessTargets("-16", -1, None),  # type: ignore[arg-type]  # deliberately malformed input
     ],
 )
 def test_rejects_targets_outside_filter_range_before_probe(tmp_path: Path, targets: LoudnessTargets) -> None:

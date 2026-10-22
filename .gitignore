@@ -13,3 +13,5 @@ audio-production.toml
 artifacts/
 *.wav
 *.flac
+.coverage
+.coverage.*

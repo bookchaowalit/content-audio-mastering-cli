@@ -12,6 +12,7 @@ import tempfile
 import time
 from dataclasses import asdict, replace
 from pathlib import Path, PurePosixPath, PureWindowsPath
+from typing import Any
 from urllib.parse import urlsplit
 
 from .artifacts import publish_artifact, write_manifest_atomic
@@ -22,7 +23,9 @@ from .models import (
     AudioBatch,
     AudioBatchResult,
     AudioLimits,
+    BatchStatus,
     ErrorInfo,
+    MeasurementStatus,
     QAResult,
     TrackRequest,
     TrackResult,
@@ -151,7 +154,7 @@ def _deadline_runner(deadline: float, calls: list):
     return tracked_runner
 
 
-def _validate_result_cpu(results) -> tuple[float | None, str]:
+def _validate_result_cpu(results: list[Any]) -> tuple[float | None, MeasurementStatus]:
     if not results or any(result.measurement_status != "measured" or result.cpu_seconds is None for result in results):
         return None, "unavailable"
     return sum(result.cpu_seconds for result in results), "measured"
@@ -269,7 +272,7 @@ def _process_batch_in_stage(
         track_start = time.monotonic()
         track_deadline = min(batch_deadline, track_start + limits.track_deadline_seconds)
         track_deadlines[request.track_id] = track_deadline
-        calls = []
+        calls: list[Any] = []
 
         if time.monotonic() >= track_deadline:
             errors[request.track_id] = AudioError("PROCESS_TIMEOUT", "Audio batch exceeded its time limit", retryable=True)
@@ -328,8 +331,8 @@ def _process_batch_in_stage(
         calls = process_results[request.track_id]
         track_deadline = track_deadlines[request.track_id]
         if time.monotonic() >= track_deadline:
-            error = AudioError("PROCESS_TIMEOUT", "Audio track exceeded its time limit", retryable=True)
-            track_results.append(_rejected_track(request, error, time.monotonic() - track_start))
+            timeout_error = AudioError("PROCESS_TIMEOUT", "Audio track exceeded its time limit", retryable=True)
+            track_results.append(_rejected_track(request, timeout_error, time.monotonic() - track_start))
             continue
 
         tracked_runner = _deadline_runner(track_deadline, calls)
@@ -362,15 +365,15 @@ def _process_batch_in_stage(
         except AudioError as error:
             track_results.append(_rejected_track(request, error, time.monotonic() - track_start))
         except OSError:
-            error = AudioError("OUTPUT_UNAVAILABLE", "Audio artifact could not be published")
-            track_results.append(_rejected_track(request, error, time.monotonic() - track_start))
+            publish_error = AudioError("OUTPUT_UNAVAILABLE", "Audio artifact could not be published")
+            track_results.append(_rejected_track(request, publish_error, time.monotonic() - track_start))
         finally:
             if source_stage is not None:
                 shutil.rmtree(source_stage, ignore_errors=True)
 
     accepted = sum(track.status == "accepted" for track in track_results)
     rejected = len(track_results) - accepted
-    status = "accepted" if rejected == 0 else "rejected" if accepted == 0 else "completed_with_errors"
+    status: BatchStatus = "accepted" if rejected == 0 else "rejected" if accepted == 0 else "completed_with_errors"
     flat_processes = [result for values in process_results.values() for result in values if hasattr(result, "cpu_seconds")]
     cpu_seconds, measurement_status = _validate_result_cpu(flat_processes)
     result = AudioBatchResult(

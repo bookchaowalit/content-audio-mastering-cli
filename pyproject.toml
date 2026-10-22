@@ -10,7 +10,7 @@ requires-python = ">=3.12"
 dependencies = ["psutil>=6,<8"]
 
 [project.optional-dependencies]
-test = ["pytest>=8,<9", "jsonschema>=4,<5", "ruff>=0.6,<1"]
+test = ["pytest>=8,<9", "jsonschema>=4,<5", "ruff>=0.6,<1", "mypy>=1.11,<3", "types-psutil", "types-jsonschema", "pytest-cov>=5,<8"]
 
 [project.scripts]
 book-audio = "book_audio_production.cli:main"
@@ -35,3 +35,17 @@ src = ["src", "tests"]
 # (UP). Widen the selection one rule family at a time, fixing findings as it
 # lands, rather than adding per-file ignores.
 select = ["E", "F", "I", "B", "UP", "SIM", "PT", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src", "tests"]
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+no_implicit_optional = true
+strict_equality = true
+
+[tool.coverage.run]
+source = ["book_audio_production"]
+branch = true
