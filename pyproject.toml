@@ -10,7 +10,7 @@ requires-python = ">=3.12"
 dependencies = ["psutil>=6,<8"]
 
 [project.optional-dependencies]
-test = ["pytest>=8,<9", "jsonschema>=4,<5", "ruff>=0.6,<1", "mypy>=1.11,<3", "types-psutil", "types-jsonschema", "pytest-cov>=5,<8"]
+test = ["pytest>=9.0.3,<10", "jsonschema>=4,<5", "ruff>=0.6,<1", "mypy>=1.11,<3", "types-psutil", "types-jsonschema", "pytest-cov>=5,<8"]
 
 [project.scripts]
 book-audio = "book_audio_production.cli:main"
