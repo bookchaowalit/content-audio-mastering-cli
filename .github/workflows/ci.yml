@@ -38,4 +38,4 @@ jobs:
         python -m pytest -q --cov
 
   security:
-    uses: bookchaowalit/platform-ci-workflows/.github/workflows/security.yml@87dc5e1c7e0416886a6371d5a101bb2ccba38edd # v1.1.1
+    uses: bookchaowalit/platform-ci-workflows/.github/workflows/security.yml@493a7f5c322219e61245cf17f1fa34de2c35a22b # v1.6.6
